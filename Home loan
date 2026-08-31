@@ -1,0 +1,295 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Home loan EMI calculator</title>
+<style>
+  :root {
+    --ink: #1b2a41;
+    --blue: #2a78d6;
+    --blue-dark: #185fa5;
+    --orange: #eb6834;
+    --paper: #f7f5f0;
+    --card: #ffffff;
+    --border: #e1ddd2;
+    --text-secondary: #5f5e5a;
+    --text-muted: #898781;
+    --radius: 10px;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    background: var(--paper);
+    color: var(--ink);
+    padding: 2rem 1rem 4rem;
+  }
+  .wrap { max-width: 640px; margin: 0 auto; }
+  h1 {
+    font-size: 24px;
+    font-weight: 600;
+    margin: 0 0 4px;
+  }
+  .subtitle {
+    color: var(--text-secondary);
+    font-size: 14px;
+    margin: 0 0 2rem;
+  }
+  .card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 1.5rem;
+    margin-bottom: 1.25rem;
+  }
+  .field { margin-bottom: 1.5rem; }
+  .field:last-child { margin-bottom: 0; }
+  .field-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    margin-bottom: 6px;
+  }
+  .field-label { font-size: 14px; color: var(--text-secondary); }
+  .field-value { font-size: 15px; font-weight: 600; font-variant-numeric: tabular-nums; }
+  input[type="range"] {
+    width: 100%;
+    -webkit-appearance: none;
+    appearance: none;
+    height: 4px;
+    border-radius: 2px;
+    background: var(--border);
+    outline: none;
+  }
+  input[type="range"]::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 18px;
+    height: 18px;
+    border-radius: 50%;
+    background: var(--blue);
+    cursor: pointer;
+    border: 2px solid #fff;
+    box-shadow: 0 0 0 1px var(--border);
+  }
+  input[type="range"]::-moz-range-thumb {
+    width: 18px;
+    height: 18px;
+    border-radius: 50%;
+    background: var(--blue);
+    cursor: pointer;
+    border: 2px solid #fff;
+    box-shadow: 0 0 0 1px var(--border);
+  }
+  .emi-card {
+    text-align: center;
+    background: var(--ink);
+    color: #fff;
+    border: none;
+  }
+  .emi-label { font-size: 13px; opacity: 0.75; margin: 0 0 6px; }
+  .emi-value {
+    font-size: 36px;
+    font-weight: 700;
+    font-variant-numeric: tabular-nums;
+    margin: 0;
+    letter-spacing: -0.5px;
+  }
+  .stats-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+    margin-bottom: 1.25rem;
+  }
+  .stat-card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 1rem;
+  }
+  .stat-label { font-size: 12px; color: var(--text-secondary); margin: 0 0 4px; }
+  .stat-value { font-size: 18px; font-weight: 600; margin: 0; font-variant-numeric: tabular-nums; }
+  .legend {
+    display: flex;
+    gap: 16px;
+    margin-bottom: 10px;
+    font-size: 13px;
+    color: var(--text-secondary);
+  }
+  .legend span { display: flex; align-items: center; gap: 6px; }
+  .swatch { width: 10px; height: 10px; border-radius: 2px; display: inline-block; }
+  .chart-title { font-size: 13px; color: var(--text-secondary); margin: 0 0 10px; }
+  .chart-wrap { position: relative; height: 220px; }
+  footer {
+    text-align: center;
+    font-size: 12px;
+    color: var(--text-muted);
+    margin-top: 2rem;
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>Home loan EMI calculator</h1>
+  <p class="subtitle">Drag the sliders to see your monthly instalment and how the loan pays down over time.</p>
+ 
+  <div class="card">
+    <div class="field">
+      <div class="field-row">
+        <span class="field-label">Loan amount</span>
+        <span class="field-value" id="amount-out">₹50,00,000</span>
+      </div>
+      <input type="range" min="500000" max="30000000" step="100000" value="5000000" id="amount" />
+    </div>
+    <div class="field">
+      <div class="field-row">
+        <span class="field-label">Interest rate</span>
+        <span class="field-value" id="rate-out">8.5%</span>
+      </div>
+      <input type="range" min="6" max="15" step="0.05" value="8.5" id="rate" />
+    </div>
+    <div class="field">
+      <div class="field-row">
+        <span class="field-label">Loan tenure</span>
+        <span class="field-value" id="tenure-out">20 years</span>
+      </div>
+      <input type="range" min="1" max="30" step="1" value="20" id="tenure" />
+    </div>
+  </div>
+ 
+  <div class="card emi-card">
+    <p class="emi-label">Monthly EMI</p>
+    <p class="emi-value" id="emi-out">₹0</p>
+  </div>
+ 
+  <div class="stats-grid">
+    <div class="stat-card">
+      <p class="stat-label">Total interest</p>
+      <p class="stat-value" id="interest-out">₹0</p>
+    </div>
+    <div class="stat-card">
+      <p class="stat-label">Total payment</p>
+      <p class="stat-value" id="total-out">₹0</p>
+    </div>
+  </div>
+ 
+  <div class="card">
+    <div class="legend">
+      <span><span class="swatch" style="background:#2a78d6;"></span><span id="principal-pct">Principal</span></span>
+      <span><span class="swatch" style="background:#eb6834;"></span><span id="interest-pct">Interest</span></span>
+    </div>
+    <div class="chart-wrap">
+      <canvas id="splitChart" role="img" aria-label="Donut chart showing principal versus interest as a share of total payment"></canvas>
+    </div>
+  </div>
+ 
+  <div class="card">
+    <p class="chart-title">Outstanding balance over time</p>
+    <div class="chart-wrap">
+      <canvas id="balanceChart" role="img" aria-label="Line chart of outstanding loan balance declining over the loan tenure"></canvas>
+    </div>
+  </div>
+ 
+  <footer>EMI is calculated on a standard reducing-balance basis. For reference only — check with your lender for exact terms.</footer>
+</div>
+ 
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+<script>
+const amountEl = document.getElementById('amount');
+const rateEl = document.getElementById('rate');
+const tenureEl = document.getElementById('tenure');
+ 
+const inr = (v) => new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR', maximumFractionDigits: 0 }).format(Math.round(v));
+ 
+let splitChart, balanceChart;
+ 
+function computeSchedule(P, annualRate, years) {
+  const r = annualRate / 12 / 100;
+  const n = years * 12;
+  const emi = r === 0 ? P / n : (P * r * Math.pow(1 + r, n)) / (Math.pow(1 + r, n) - 1);
+  let balance = P;
+  const yearlyBalances = [balance];
+  for (let m = 1; m <= n; m++) {
+    const interestPart = balance * r;
+    const principalPart = emi - interestPart;
+    balance = Math.max(0, balance - principalPart);
+    if (m % 12 === 0) yearlyBalances.push(balance);
+  }
+  const totalPayment = emi * n;
+  const totalInterest = totalPayment - P;
+  return { emi, totalPayment, totalInterest, yearlyBalances };
+}
+ 
+function update() {
+  const P = parseFloat(amountEl.value);
+  const rate = parseFloat(rateEl.value);
+  const years = parseInt(tenureEl.value, 10);
+ 
+  document.getElementById('amount-out').textContent = inr(P);
+  document.getElementById('rate-out').textContent = rate.toFixed(2) + '%';
+  document.getElementById('tenure-out').textContent = years + (years === 1 ? ' year' : ' years');
+ 
+  const { emi, totalPayment, totalInterest, yearlyBalances } = computeSchedule(P, rate, years);
+ 
+  document.getElementById('emi-out').textContent = inr(emi);
+  document.getElementById('interest-out').textContent = inr(totalInterest);
+  document.getElementById('total-out').textContent = inr(totalPayment);
+ 
+  const principalPct = Math.round((P / totalPayment) * 100);
+  const interestPct = 100 - principalPct;
+  document.getElementById('principal-pct').textContent = 'Principal ' + principalPct + '%';
+  document.getElementById('interest-pct').textContent = 'Interest ' + interestPct + '%';
+ 
+  const splitData = [P, totalInterest];
+  const balanceLabels = yearlyBalances.map((_, i) => 'Yr ' + i);
+ 
+  const gridColor = '#e1ddd2';
+  const tickColor = '#898781';
+ 
+  if (!splitChart) {
+    splitChart = new Chart(document.getElementById('splitChart'), {
+      type: 'doughnut',
+      data: {
+        labels: ['Principal', 'Interest'],
+        datasets: [{ data: splitData, backgroundColor: ['#2a78d6', '#eb6834'], borderWidth: 2, borderColor: '#ffffff' }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: { legend: { display: false }, tooltip: { callbacks: { label: (ctx) => ctx.label + ': ' + inr(ctx.parsed) } } }
+      }
+    });
+    balanceChart = new Chart(document.getElementById('balanceChart'), {
+      type: 'line',
+      data: {
+        labels: balanceLabels,
+        datasets: [{ data: yearlyBalances, borderColor: '#2a78d6', backgroundColor: 'rgba(42,120,214,0.1)', fill: true, tension: 0.25, pointRadius: 0, borderWidth: 2 }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: { legend: { display: false }, tooltip: { callbacks: { label: (ctx) => inr(ctx.parsed.y) } } },
+        scales: {
+          x: { grid: { display: false }, ticks: { color: tickColor, maxTicksLimit: 8 } },
+          y: { grid: { color: gridColor }, ticks: { color: tickColor, callback: (v) => '₹' + (v / 100000).toFixed(0) + 'L' } }
+        }
+      }
+    });
+  } else {
+    splitChart.data.datasets[0].data = splitData;
+    splitChart.update();
+    balanceChart.data.labels = balanceLabels;
+    balanceChart.data.datasets[0].data = yearlyBalances;
+    balanceChart.update();
+  }
+}
+ 
+amountEl.addEventListener('input', update);
+rateEl.addEventListener('input', update);
+tenureEl.addEventListener('input', update);
+update();
+</script>
+</body>
+</html>
+ 
